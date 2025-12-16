@@ -10,7 +10,7 @@ import os
 class ProcessingTime(Node):
     def __init__(self):
         super().__init__('image_viewer_node')
-        self.declare_parameter('output_dir', '~/boat/data/')
+        self.declare_parameter('output_dir', '~/Autonomous-Boat/data/')
         self.declare_parameter('plot_name', 'processing_time.png')
         
         # Get parameters

@@ -21,7 +21,7 @@ public:
     MovementDetectionNode() : Node("movement_detection_node")
     {
         // Declare parameters for video recording
-        this->declare_parameter<std::string>("output_dir", "/home/aidankwok/boat/data/threshold_tests/");
+        this->declare_parameter<std::string>("output_dir", "/home/aidankwok/Autonomous-Boat/data/threshold_tests/");
         this->declare_parameter<int>("max_frames", 400);
         this->declare_parameter<bool>("enable_recording", false);
         last_publish_time_ = std::chrono::steady_clock::now();
@@ -96,7 +96,7 @@ private:
     const std::chrono::milliseconds publish_interval_{1000};  // 1 second
 
 	void initialize_demo_writer() {
-   		std::string filename = "/home/aidankwok/boat/data/demo_video.mp4";
+   		std::string filename = "/home/aidankwok/Autonomous-Boat/data/demo_video.mp4";
             
             // Delete existing file if present
     	if (std::filesystem::exists(filename)) {

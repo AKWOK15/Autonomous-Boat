@@ -10,7 +10,7 @@ class RecordVideo(Node):
         super().__init__('image_viewer_node')
         
         # Declare parameters
-        self.declare_parameter('output_dir', '~/boat/data')
+        self.declare_parameter('output_dir', '~/Autonomous-Boat/data')
         self.declare_parameter('num_frames', 200)
         self.declare_parameter('endless_recording', True)
         self.declare_parameter('video_name', 'video_detected_image.mp4')
