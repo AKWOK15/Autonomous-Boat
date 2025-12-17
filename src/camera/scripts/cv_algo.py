@@ -1,78 +1,107 @@
+from imutils.video import VideoStream
+from imutils.video import FPS
 import cv2
-import numpy as np
 import os
-import datetime 
-MOG2 = cv2.createBackgroundSubtractorMOG2()
-
-def model(frame, k_5, k_3):
-    MOG2_mask = MOG2.apply(frame)
-    #First output is threshold that was used, second is thresholded image
-    _, threshold = cv2.threshold(MOG2_mask, 180, 255, cv2.THRESH_BINARY)
-    
-    dilate = cv2.dilate(threshold, k_5, iterations=1)
-    morph = cv2.morphologyEx(dilate, cv2.MORPH_CLOSE, k_3)
-    return morph
-def find_biggest_contour(mask):
-    """Find the biggest contour in the mask"""
-    contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-    
-    if contours:
-        biggest_contour = max(contours, key=cv2.contourArea)
-        return biggest_contour, contours
-    return None, []
-
-def draw_rectangle_on_image(image, contour):
-    """Draw rectangles around the biggest contour and all contours"""
-    result_image = image.copy()
-    
-    if contour is not None:
-        x, y, w, h = cv2.boundingRect(contour)
-        cv2.rectangle(result_image, (x, y), (x + w, y + h), (0, 255, 0), 3)
-        
-        area = cv2.contourArea(contour)
-        cv2.putText(result_image, f'Area: {int(area)}', (x, y-30), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-        cv2.putText(result_image, f'Size: {w}x{h}', (x, y-10), 
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
-    
-    return result_image
+import argparse
+import imutils
+import time
+import datetime
 
 def main():
+    ap = argparse.ArgumentParser()
+    
+    ap.add_argument("-t", "--tracker", type=str, default="kcf",
+        help="OpenCV object tracker type")
+    args = vars(ap.parse_args())
+
+
+    OPENCV_OBJECT_TRACKERS = {
+		"csrt": cv2.TrackerCSRT_create,
+		"kcf": cv2.TrackerKCF_create,
+		"mil": cv2.TrackerMIL_create,
+		# "tld": cv2.TrackerTLD_create,
+		# "medianflow": cv2.TrackerMedianFlow_create,
+		# "mosse": cv2.TrackerMOSSE_create
+	}
+	# grab the appropriate object tracker using our dictionary of
+	# OpenCV object tracker objects
+    tracker = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
+    initBB = None
+    fps = None
+    #Settings for video recording
     output_dir = f'/home/aidankwok/Autonomous-Boat/data/model'
     os.makedirs(output_dir, exist_ok=True)
     date = datetime.datetime.now()
     video_name = f'cv_video_{date}.mp4'
     video_path = os.path.join(output_dir, video_name)
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-    out = cv2.VideoWriter(video_path, fourcc, 20.0, (320, 240))
-    cap = cv2.VideoCapture('/home/aidankwok/Autonomous-Boat/data/test_video_2025-12-16 14:22:44.312634.mp4')
+    height = 240
+    width = 320
+    out = cv2.VideoWriter(video_path, fourcc, 20.0, (width, height))
+    cap = cv2.VideoCapture('/home/aidankwok/Autonomous-Boat/data/test_video_2025-12-16 18:20:03.160070.mp4')
     if not cap.isOpened():
-        print("Error: Could not open camera")
+        print("Error: Could not open video")
         exit()
     if not out.isOpened():
         print(f'Failed to open video writer at {output_dir}!')
     else:
         print(f'Recording to {output_dir}')
 
-    k_5 = np.ones((5, 5), np.uint8)
-    k_3 = np.ones((3, 3), np.uint8)
+
     frame_count = 0
-    while(cap.isOpened()):
-        ret, frame = cap.read()
-        if ret == True:
-            processed_frame = model(frame, k_5, k_3)
-            biggest_contour, contours = find_biggest_contour(processed_frame)
-            final_frame = draw_rectangle_on_image(frame, biggest_contour)
-            out.write(final_frame)
-            frame_count+=1
-            if frame_count%10 == 0:
-                print(f'number of frames processed: {frame_count}')
+    try:
+        while(cap.isOpened()):
+            ret, frame = cap.read()
+            if ret == True:
+                # check to see if we are currently tracking an object
+                key = cv2.waitKey(1) & 0xFF
+                if key == ord("s") or frame_count == 30:
+                    # select the bounding box of the object we want to track (make
+                    # sure you press ENTER or SPACE after selecting the ROI)
+                    initBB = cv2.selectROI("Frame", frame, fromCenter=False,
+                        showCrosshair=True)
+                    # start OpenCV object tracker using the supplied bounding box
+                    # coordinates, then start the FPS throughput estimator as well
+                    tracker.init(frame, initBB)
+                    fps = FPS().start()
+                if initBB is not None:
+                    # grab the new bounding box coordinates of the object
+                    (success, box) = tracker.update(frame)
+                    # check to see if the tracking was a success
+                    if success:
+                        (x, y, w, h) = [int(v) for v in box]
+                        cv2.rectangle(frame, (x, y), (x + w, y + h),
+                            (0, 255, 0), 2)
+                    # update the FPS counter
+                    fps.update()
+                    fps.stop()
+                    # initialize the set of information we'll be displaying on
+                    # the frame
+                    info = [
+                        ("Tracker", args["tracker"]),
+                        ("Success", "Yes" if success else "No"),
+                        ("FPS", "{:.2f}".format(fps.fps())),
+                    ]
+                    # loop over the info tuples and draw them on our frame
+                    for (i, (k, v)) in enumerate(info):
+                        text = "{}: {}".format(k, v)
+                        cv2.putText(frame, text, (10, height - ((i * 20) + 20)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+                # cv2.imshow("Frame", frame)
+                # if the 's' key is selected, we are going to "select" a bounding
+                # box to track
+                out.write(frame)
+                frame_count+=1
+                if frame_count%10 == 0:
+                    print(f'number of frames processed: {frame_count}')
 
-        else:
-            break
+            else:
+                break
 
-
-    cap.release()
-    print("Finished applying computer vision to test video")
+    finally:
+        cap.release()
+        out.release()
+        cv2.destroyAllWindows()
+        print("Finished applying computer vision to test video")
 
 main()
