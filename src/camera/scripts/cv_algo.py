@@ -60,6 +60,9 @@ def main():
                     # sure you press ENTER or SPACE after selecting the ROI)
                     initBB = cv2.selectROI("Frame", frame, fromCenter=False,
                         showCrosshair=True)
+                    #selectROI gives corners of bouding box to track 
+                    #could use a different model to initialy find the bouding box and thenhave single object detection track it afterwards
+                    #base bouding box off of my skin color
                     # start OpenCV object tracker using the supplied bounding box
                     # coordinates, then start the FPS throughput estimator as well
                     tracker.init(frame, initBB)
