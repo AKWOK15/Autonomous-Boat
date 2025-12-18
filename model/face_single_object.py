@@ -78,21 +78,18 @@ try:
                 if len(results) > 0:  # This checks if any faces were detected
                     # Get the first detection's bounding box
                     x1, y1, x2, y2 = results.xyxy[0]  # Access directly with results.xyxy[0]
-                    
+                    print(f'results.xyxy[0]: {results.xyxy[0]}')
+                    print(f'results[0].xyxy: {results[0].xyxy[0]}')
+                    width = int(x2-x1)
+                    height = int(y2-y1)
+                    print(f'area: {width*height}')
+                    if (width*height > 450):
                     # Convert to CSRT format: [x, y, width, height]
-                    bounding_box_coords = (int(x1), int(y1), int(x2-x1), int(y2-y1))
-                    
-                    print(f'Initializing tracker with box: {bounding_box_coords}')
-                    tracker.init(frame, bounding_box_coords)
-                    fps = FPS().start()
-                # print(f'results[0].xyxy: {len(results[0].xyxy)}')
-                # if (len(results[0].xyxy)!=0 and len(results[0].xyxy[0]) == 4):
-                #     print(f'results[0].xyxy: {results[0].xyxy[0]}')
-                #     x1, y1, x2, y2 = results[0].xyxy[0]
-                #     #top left x, top left y, width height
-                #     bounding_box_coords = [int(x1), int(y1), int(x2-x1), int(y2-y1)]
-                #     tracker.init(frame, bounding_box_coords)
-                #     fps = FPS().start()
+                        bounding_box_coords = (int(x1), int(y1), int(x2-x1), int(y2-y1))
+                        
+                        print(f'Initializing tracker with box: {bounding_box_coords}')
+                        tracker.init(frame, bounding_box_coords)
+                        fps = FPS().start()
             if bounding_box_coords is not None:
                 # grab the new bounding box coordinates of the object
                 (success, box) = tracker.update(frame)

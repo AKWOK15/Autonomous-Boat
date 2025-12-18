@@ -55,11 +55,12 @@ def main():
             if ret == True:
                 # check to see if we are currently tracking an object
                 key = cv2.waitKey(1) & 0xFF
-                if key == ord("s") or frame_count == 30:
+                if key == ord("s") or frame_count == 90:
                     # select the bounding box of the object we want to track (make
                     # sure you press ENTER or SPACE after selecting the ROI)
                     initBB = cv2.selectROI("Frame", frame, fromCenter=False,
                         showCrosshair=True)
+                    print(f'initBB: {initBB}')
                     #selectROI gives corners of bouding box to track 
                     #could use a different model to initialy find the bouding box and thenhave single object detection track it afterwards
                     #base bouding box off of my skin color
@@ -105,6 +106,6 @@ def main():
         cap.release()
         out.release()
         cv2.destroyAllWindows()
-        print("Finished applying computer vision to test video")
+        print(f'Finished applying computer vision to test video, new video is { video_name}')
 
 main()
