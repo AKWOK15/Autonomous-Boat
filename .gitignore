@@ -3,6 +3,9 @@ build/
 install/
 log/
 
+#CV output
+data/
+
 # IDE files
 .vscode/
 .idea/
