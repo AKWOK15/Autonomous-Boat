@@ -6,6 +6,9 @@ cap = cv2.VideoCapture(0, cv2.CAP_V4L2)
 # Set resolution (optional)
 cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+#Needed to tell camera what format to send otuput in 
+#Default was YUYV which is raw uncompressed video format
+cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M','J','P','G'))
 date = datetime.datetime.now()
 output_dir = f'/home/aidankwok/Autonomous-Boat/data/test_video_{date}.mp4'
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
@@ -29,7 +32,11 @@ try:
             break
         
         resize = cv2.resize(frame, (320, 240))
+        cv2.imshow('Frame', resize)
+        cv2.waitKey(1)
         out.write(resize)
+
+            
         
 finally:
 # Release resources
