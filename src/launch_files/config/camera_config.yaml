@@ -1,0 +1,5 @@
+/**:
+  ros__parameters:
+    resize_width: 320
+    resize_height: 240
+    fps: 10

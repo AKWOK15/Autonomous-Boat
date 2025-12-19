@@ -7,6 +7,11 @@ from ament_index_python.packages import get_package_share_directory
 
 def generate_launch_description():
     # Declare launch arguments
+
+    config_file = os.path.join(
+        get_package_share_directory('launch_files'), 'config', 'camera_config.yaml'
+    )
+
     camera_device_arg = DeclareLaunchArgument(
         'camera_device',
         default_value='/dev/video0',
@@ -99,18 +104,14 @@ def generate_launch_description():
     movement_detection_node = Node(
         package='camera',
         executable='movement_detection_node',
+        parameters=[config_file],
         # arguments=['--ros-args', '--log-level', 'ERROR']
     )
 
     obstacle_detection_node = Node(
         package='camera',
         executable='obstacle_detection_node',
-        parameters=[
-            {
-                'resize_height':480,
-                'resize_width':640
-            }
-        ],
+        parameters=[config_file]
         #arguments=['--ros-args', '--log-level', 'ERROR']
     )
     yolo_node = Node(
@@ -121,7 +122,8 @@ def generate_launch_description():
     
     face_detection_node = Node(
         package='camera_py',
-        executable='face_detection_node'
+        executable='face_detection_node',
+        parameters=[config_file]
     )
     sensor_fusion = Node(
         package='sensor_fusion',
@@ -129,13 +131,15 @@ def generate_launch_description():
         # arguments=['--ros-args', '--log-level', 'ERROR']
     )
     
+    
+
     return LaunchDescription([
         camera_device_arg,
         camera_width_arg, 
         camera_height_arg,
         throttle_node,
         # ultrasonic_sensor_node,
-        # sensor_fusion,
+        sensor_fusion,
         v4l2_camera_node,
         face_detection_node
         # colors_detection_node,

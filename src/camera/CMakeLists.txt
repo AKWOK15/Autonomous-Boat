@@ -61,27 +61,6 @@ ament_target_dependencies(movement_detection_node
   OpenCV
 )
 
-# Add camera_node executable
-add_executable(camera_node src/camera_node.cpp)
-ament_target_dependencies(camera_node 
-  rclcpp 
-  sensor_msgs 
-  std_msgs  # Added this line if camera_node also uses std_msgs
-  cv_bridge 
-  image_transport 
-  OpenCV
-)
-
-
-# Install targets, copy compiled executables into install directory 
-install(TARGETS
-  camera_node
-  colors_detection_node
-  movement_detection_node
-  obstacle_detection_node
-  yolo_node
-  DESTINATION lib/${PROJECT_NAME}
-)
 
 # Install config files
 install(DIRECTORY

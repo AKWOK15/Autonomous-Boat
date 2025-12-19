@@ -22,7 +22,7 @@ class FaceDetectionNode(Node):
             self.image_callback,
             10
         )
-        
+        #10 is queue for messages in case publisher isn't receiving them fast enough 
         self.publisher = self.create_publisher(
             Twist,
             '/camera/cmd_vel',
@@ -34,21 +34,24 @@ class FaceDetectionNode(Node):
             model_selection=0, 
             min_detection_confidence=0.5
         )
-        
-        self.width = 320
-        self.height = 240
+        self.declare_parameter('resize_width')
+        self.declare_parameter('resize_height')
+        self.declare_parameter('fps')
+        self.width = self.get_parameter('resize_width').value
+        self.height = self.get_parameter('resize_height').value
+        self.fps = self.get_parameter('fps').value
         self.center_x = self.width / 2
         self.turn_threshold = self.width * 0.05
         self.servo_angle = 55.0
         
         # Record frames with bounding boxes
-        self.output_dir = '/home/aidankwok/Autonomous-Boat/data/model'
+        self.output_dir = '/home/aidankwok/Autonomous-Boat/data/face_detection_node'
         os.makedirs(self.output_dir, exist_ok=True)  # Create directory if it doesn't exist
         
-        self.date = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-        self.video_path = os.path.join(self.output_dir, f'face_detection_node_{self.date}.mp4')
+        self.date = datetime.datetime.now().strftime("%m_%d_%H_%M")
+        self.video_path = os.path.join(self.output_dir, f'{self.date}.mp4')
         self.fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-        self.out = cv2.VideoWriter(self.video_path, self.fourcc, 20, (self.width, self.height))
+        self.out = cv2.VideoWriter(self.video_path, self.fourcc, self.fps, (self.width, self.height))
         self.frame_count = 0
     
     def image_callback(self, msg):

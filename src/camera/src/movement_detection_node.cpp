@@ -24,6 +24,8 @@ public:
         this->declare_parameter<std::string>("output_dir", "/home/aidankwok/Autonomous-Boat/data/threshold_tests/");
         this->declare_parameter<int>("max_frames", 400);
         this->declare_parameter<bool>("enable_recording", false);
+        this->declare_parameter<int>("resize_height");
+        this->declare_parameter<int>("resize_width");
         last_publish_time_ = std::chrono::steady_clock::now();
         RCLCPP_INFO(this->get_logger(), "Movement Detection Node Started");
     }
@@ -31,6 +33,8 @@ public:
     // Initialize subscriptions and publishers after the node is fully constructed
     void initialize()
     {
+        height_ = this->get_parameter("resize_height").as_int();
+        width_ = this->declare_parameter<int>("resize_width").as_int();
         // Initialize image transport AFTER the node is managed by shared_ptr
         it_ = std::make_shared<image_transport::ImageTransport>(shared_from_this());
         
@@ -53,11 +57,6 @@ public:
         RCLCPP_INFO(this->get_logger(), "Movement Node Initialized");
         kernel_ = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
         
-        // Pre-allocate all matrices
-        resized_image_ = cv::Mat(120, 160, CV_8UC3);
-        foreground_mask_ = cv::Mat(120, 160, CV_8UC1);
-        threshold_img_ = cv::Mat(120, 160, CV_8UC1);
-        dilated_ = cv::Mat(120, 160, CV_8UC1);
         initialize_demo_writer();
         // Initialize video recording if enabled
         if (this->get_parameter("enable_recording").as_bool()) {
@@ -70,11 +69,6 @@ public:
         release_video_writers();
 		release_demo_writer();
     }
-    // ~MovementDetectionNode()
-    // {
-    //     release_video_writers();
-	// 	release_demo_writer();
-    // }
 
 private:
     // Video recording variables
@@ -104,7 +98,7 @@ private:
             RCLCPP_INFO(this->get_logger(), "Deleted existing file: %s", filename.c_str());
     	}
             
-    	demo_video_writer_ = cv::VideoWriter(filename, cv::VideoWriter::fourcc('m', 'p', '4', 'v'),20.0, cv::Size(320, 240));
+    	demo_video_writer_ = cv::VideoWriter(filename, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 20.0, cv::Size(wself.idth, 240));
             
         if (demo_video_writer_.isOpened()) {
             RCLCPP_INFO(this->get_logger(), "Initialized demo writer");
@@ -139,7 +133,7 @@ private:
             cv::VideoWriter writer(filename, 
                                   cv::VideoWriter::fourcc('m', 'p', '4', 'v'),
                                   20.0, 
-                                  cv::Size(320, 240));
+                                  cv::Size(height_, width_));
             
             if (writer.isOpened()) {
                 video_writers_[threshold] = std::move(writer);
@@ -172,7 +166,7 @@ private:
     {   
         auto start_time = std::chrono::high_resolution_clock::now();
         cv::Mat resized_image;
-        cv::resize(frame, resized_image, cv::Size(320, 240));
+        cv::resize(frame, resized_image, cv::Size(width_, height_));
         cv::Mat foreground_mask;
         
         // Apply background subtraction
@@ -227,7 +221,7 @@ private:
                 
             //     // Create visualization image
             //     cv::Mat visualization;
-            //     cv::resize(resized_image, visualization, cv::Size(320, 240));
+            //     cv::resize(resized_image, visualization, cv::Size(width_, height_));
                 
             //     // Draw all contours
             //     int largest_contour_index = -1;
@@ -468,12 +462,8 @@ private:
         
         twist_publisher_->publish(cmd_vel);
     }
-
-    cv::Mat resized_image_;
-    cv::Mat foreground_mask_;
-    cv::Mat threshold_img_;
-    cv::Mat dilated_;
-    cv::Mat kernel_;
+    int height;
+    int width;
     std::vector<std::vector<cv::Point>> contours_;
     std::shared_ptr<image_transport::ImageTransport> it_;
     image_transport::Subscriber image_subscriber_;

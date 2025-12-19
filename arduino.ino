@@ -1,13 +1,16 @@
+// Debug version to see exactly what Arduino receives
+
 #include <Servo.h>
 
 const int SERVO_PIN = 8;
 const int TRIGGER_PIN = 9;
 const int ECHO_PIN = 10;
-// PWM Pin
-const int PMW_PIN = 5;
+// PWM
+const int ESC_PIN = 5;
 
 // Servo control variables
 Servo myservo;
+Servo esc;
 String receivedString = "";
 float angleFloat;
 boolean newData = false;
@@ -53,16 +56,19 @@ void setup() {
     pinMode(TRIGGER_PIN, OUTPUT);
     pinMode(ECHO_PIN, INPUT);
     digitalWrite(TRIGGER_PIN, LOW);
-    
+
+    esc.attach(ESC_PIN);
+    esc.writeMicroseconds(1500);  // Neutral position
+    delay(2000);  // Wait for ESC to arm (you should hear beeps)
     Serial.println("Arduino Servo + Ultrasonic Ready (DEBUG VERSION)");
 }
 
 void loop() {
     recvInfo();
     smoothMove();
-    handleUltrasonicTiming();
-    processUltrasonicMeasurement();
-    motorSpeed();
+    // handleUltrasonicTiming();
+    // processUltrasonicMeasurement();
+    // motorSpeed();
 }
 
 // DEBUG VERSION: Show exactly what we receive
@@ -148,7 +154,7 @@ void processUltrasonicMeasurement() {
 
 void motorSpeed(){
   if (!enabled) {
-    analogWrite(PMW_PIN, 0);  // Keep motor off
+    analogWrite(ESC_PIN, 1500);  // Keep motor off
     return;
   }
   unsigned long current_time = millis();
@@ -167,20 +173,20 @@ void motorSpeed(){
     int motorSpeed;
     
     if (avgDistance <= 10) {
-      motorSpeed = 0;
+      motorSpeed = 1500;
     }
     else if (avgDistance >= 100) {
-      motorSpeed = 255;
+      motorSpeed = 1750;
     }
     else {
-      motorSpeed = map(avgDistance, 10, 100, 0, 255);
+      motorSpeed = map(avgDistance, 10, 100, 1500, 1750);
     }
     Serial.print("Motor Speed:");
     Serial.println(motorSpeed);
     // Only write to motor if speed actually changed
     if (motorSpeed != current_motor_speed) {
       current_motor_speed = motorSpeed;
-      analogWrite(PMW_PIN, current_motor_speed);
+      esc.writeMicroseconds(motorSpeed);
     }
     
     last_motor_update = current_time;
