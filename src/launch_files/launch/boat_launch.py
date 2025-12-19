@@ -119,6 +119,10 @@ def generate_launch_description():
         arguments=['--ros-args', '--log-level', 'ERROR']
     )
     
+    face_detection_node = Node(
+        package='camera_py',
+        executable='face_detection_node'
+    )
     sensor_fusion = Node(
         package='sensor_fusion',
         executable='fusion_node',
@@ -133,8 +137,9 @@ def generate_launch_description():
         # ultrasonic_sensor_node,
         sensor_fusion,
         v4l2_camera_node,
+        face_detection_node
         # colors_detection_node,
-        movement_detection_node
+        # movement_detection_node
         #obstacle_detection_node
         #yolo_node
     ])

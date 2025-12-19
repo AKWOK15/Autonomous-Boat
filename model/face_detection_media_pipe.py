@@ -14,7 +14,7 @@ os.makedirs(output_dir, exist_ok=True)
 date = datetime.datetime.now()
 video_path = os.path.join(output_dir, f'face_mediapipe_{date}.mp4')
 
-cap = cv2.VideoCapture('/home/aidankwok/Autonomous-Boat/data/test_video_2025-12-16 18:20:03.160070.mp4')
+cap = cv2.VideoCapture('/home/aidankwok/Autonomous-Boat/data/test_video_2025-12-18 18:35:04.965691.mp4')
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = cap.get(cv2.CAP_PROP_FPS)
