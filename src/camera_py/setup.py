@@ -24,7 +24,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'face_detection_node = camera.face_detection_node:main',
+            'face_detection_node = camera_py.face_detection_node:main',
         ],
     },
 )
