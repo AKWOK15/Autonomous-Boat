@@ -81,7 +81,7 @@ def generate_launch_description():
         package='topic_tools',
         executable='throttle',
         name='camera_throttle',
-        arguments=['messages', '/camera/image_raw', '1.0', '/camera/image_raw/throttled']
+        arguments=['messages', '/camera/image_raw', '10.0', '/camera/image_raw/throttled']
     )
     
     colors_detection_node = Node(

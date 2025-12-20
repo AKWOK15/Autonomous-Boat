@@ -5,8 +5,8 @@ import os
 
 mp_face_detection = mp.solutions.face_detection
 face_detection = mp_face_detection.FaceDetection(
-    model_selection=0,  # 0=short range (faster), 1=full range
-    min_detection_confidence=0.5
+    model_selection=1,  # 0=short range (faster), 1=full range
+    min_detection_confidence=0.2
 )
 
 output_dir = '/home/aidankwok/Autonomous-Boat/data/model'
@@ -14,27 +14,28 @@ os.makedirs(output_dir, exist_ok=True)
 date = datetime.datetime.now()
 video_path = os.path.join(output_dir, f'face_mediapipe_{date}.mp4')
 
-cap = cv2.VideoCapture('/home/aidankwok/Autonomous-Boat/data/test_video_2025-12-18 18:35:04.965691.mp4')
+cap = cv2.VideoCapture('/home/aidankwok/Autonomous-Boat/data/test_video_2025-12-20 15:40:24.777259.mp4')
 width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 fps = cap.get(cv2.CAP_PROP_FPS)
-
 fourcc = cv2.VideoWriter_fourcc(*'mp4v')
 out = cv2.VideoWriter(video_path, fourcc, fps, (width, height))
 
 frame_count = 0
-
+face_found = 0
 while cap.isOpened():
 
     ret, frame = cap.read()
     if not ret:
+        print("no frame")
         break
     start = datetime.datetime.now()
     # Convert to RGB for MediaPipe
     rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
     results = face_detection.process(rgb)
-    
     if results.detections:
+        print(results.detections)
+        face_found +=1 
         for detection in results.detections:
             bbox = detection.location_data.relative_bounding_box
             x = int(bbox.xmin * width)
@@ -47,12 +48,13 @@ while cap.isOpened():
     out.write(frame)
     end = datetime.datetime.now()
     processing_time = end-start
-    print(f'processing time: {processing_time.microseconds}')
-    print(f'processing time: {processing_time}')
+    # print(f'processing time: {processing_time.microseconds}')
+    # print(f'processing time: {processing_time}')
     frame_count += 1
-    if frame_count % 10 == 0:
-        print(f'Frames processed: {frame_count}')
+    # if frame_count % 10 == 0:
+        # print(f'Frames processed: {frame_count}')
 
+print(f'%% of frames with face: {face_found/frame_count}')
 cap.release()
 out.release()
 face_detection.close()

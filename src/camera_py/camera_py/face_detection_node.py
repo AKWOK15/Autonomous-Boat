@@ -18,7 +18,7 @@ class FaceDetectionNode(Node):
         
         self.subscription = self.create_subscription(
             Image,
-            '/camera/image_raw',
+            '/camera/image_raw/throttled',
             self.image_callback,
             10
         )
@@ -57,7 +57,7 @@ class FaceDetectionNode(Node):
     def image_callback(self, msg):
         # Convert ROS Image message to OpenCV image
         frame = self.bridge.imgmsg_to_cv2(msg, 'bgr8')  # Fixed typo
-        frame = cv2.resize(frame, (self.width, self.height))
+        # frame = cv2.resize(frame, (self.width, self.height))
         
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         results = self.face_detection.process(rgb)  # Fixed: added self.

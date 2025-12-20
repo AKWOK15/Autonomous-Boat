@@ -2,6 +2,7 @@
 from huggingface_hub import hf_hub_download
 from ultralytics import YOLO
 from supervision import Detections
+from video_objects import create_objects
 import cv2
 import os
 import datetime
@@ -14,16 +15,9 @@ model = YOLO(model_path)
 # inference
 
 
-output_dir = f'/home/aidankwok/Autonomous-Boat/data/model'
-os.makedirs(output_dir, exist_ok=True)
-date = datetime.datetime.now()
-video_name = f'face_detection_{date}.mp4'
-video_path = os.path.join(output_dir, video_name)
-fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-height = 240
-width = 320
-out = cv2.VideoWriter(video_path, fourcc, 20.0, (width, height))
-cap = cv2.VideoCapture('/home/aidankwok/Autonomous-Boat/data/test_video_2025-12-16 18:20:03.160070.mp4')
+output_dir = f'/home/aidankwok/Autonomous-Boat/data/yolo'
+cap, out = create_objects('/home/aidankwok/Autonomous-Boat/data/test_video_2025-12-20 16:22:05.047785.mp4', output_dir, 480, 640, 20.0)
+
 if not cap.isOpened():
     print("Error: Could not open video")
     exit()
@@ -67,5 +61,3 @@ finally:
     out.release()
     cv2.destroyAllWindows()
     print("Finished applying computer vision to test video")
-
-main()

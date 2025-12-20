@@ -34,7 +34,7 @@ public:
     void initialize()
     {
         height_ = this->get_parameter("resize_height").as_int();
-        width_ = this->declare_parameter<int>("resize_width").as_int();
+        width_ = this->get_parameter("resize_width").as_int();
         // Initialize image transport AFTER the node is managed by shared_ptr
         it_ = std::make_shared<image_transport::ImageTransport>(shared_from_this());
         
@@ -98,7 +98,7 @@ private:
             RCLCPP_INFO(this->get_logger(), "Deleted existing file: %s", filename.c_str());
     	}
             
-    	demo_video_writer_ = cv::VideoWriter(filename, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 20.0, cv::Size(wself.idth, 240));
+    	demo_video_writer_ = cv::VideoWriter(filename, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), 20.0, cv::Size(width_, height_));
             
         if (demo_video_writer_.isOpened()) {
             RCLCPP_INFO(this->get_logger(), "Initialized demo writer");
@@ -462,8 +462,9 @@ private:
         
         twist_publisher_->publish(cmd_vel);
     }
-    int height;
-    int width;
+    int height_;
+    int width_;
+    cv::Mat kernel_;
     std::vector<std::vector<cv::Point>> contours_;
     std::shared_ptr<image_transport::ImageTransport> it_;
     image_transport::Subscriber image_subscriber_;
