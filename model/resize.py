@@ -9,9 +9,9 @@ height = 480
 #Default was YUYV which is raw uncompressed video format
 date = datetime.datetime.now()
 output_dir = f'/home/aidankwok/Autonomous-Boat/data/{width}x{height}'
-cap, out = video_objects.create_objects(None, output_dir, height, width, 30, True)
+cap, out = video_objects.create_objects('/home/aidankwok/Autonomous-Boat/data/1280x960/2025-12-20 20:36:39.602939.mp4', output_dir, height, width, 30.0)
 
-
+frame_count = 0
 # Check if camera opened successfully
 if not cap.isOpened():
     print("Error: Could not open camera")
@@ -24,18 +24,11 @@ else:
 try:
     print("made it to try block")
     while True:
-        print(cap.read())
         ret, frame = cap.read()
-        print(frame)
-        if not ret or frame is None:
-            print("Failed to grab frame")
-            break
-        print(f'frame width: {frame.shape[1]}')
-        print(f'frame height: {frame.shape[0]}')
-        # resize = cv2.resize(frame, (320, 240))
-        # cv2.imshow('Frame', resize)
-        # cv2.waitKey(1)
-        out.write(frame)
+        frame_count+=1
+        print(frame_count)
+        resize = cv2.resize(frame, (width, height))
+        out.write(resize)
 
             
         

@@ -4,7 +4,7 @@ import cv2
 import utils
 import cv2
 import video_objects 
-
+import matplotlib.pyplot as plt
 class FaceDetector:
     def __init__(self,
                  model,
@@ -27,6 +27,8 @@ class FaceDetector:
         self.confidence_thr = confidence_thr
         # threshold for the nonmaximum suppression
         self.overlap_thr = overlap_thr
+        self.frame_count = 0
+        self.frame_with_face = 0
 
     def preprocess(self, image):
         """
@@ -77,6 +79,7 @@ class FaceDetector:
             cv2.rectangle(image, pt1, pt2, color=color, thickness=2, lineType=cv2.LINE_4)#BGR
 
     def inference(self, image):
+        self.frame_count+=1
         input_image = self.preprocess(image)
         # inference
         pred_scores = self.model( [input_image] )[self.output_scores_layer]
@@ -84,14 +87,41 @@ class FaceDetector:
 
         image_shape = image.shape[:2]
         faces, scores = self.posprocess(pred_scores, pred_boxes, image_shape)
+        if len(faces)>0:
+            self.frame_with_face+=1
         return faces, scores
-    
+
+    def face_frame_freq(self):
+        return self.frame_with_face/self.frame_count
+
 def main():
+    #Seeing if 1280x960 is better than 640x480
     detector = FaceDetector(model='/home/aidankwok/Autonomous-Boat/model/public/ultra-lightweight-face-detection-rfb-320/FP16/ultra-lightweight-face-detection-rfb-320.xml',
                         confidence_thr=0.5,
                         overlap_thr=0.7)
     output_dir = f'/home/aidankwok/Autonomous-Boat/data/openVINO'
-    cap, out = video_objects.create_objects('/home/aidankwok/Autonomous-Boat/data/test_video_2025-12-20 16:22:05.047785.mp4', output_dir, 480, 640, 20.0)
-    video_objects.process_frames(detector, cap, out)
-    
+    cap, out = video_objects.create_objects('/home/aidankwok/Autonomous-Boat/data/1280x960/2025-12-20 20:36:39.602939.mp4', output_dir, 960, 1280, 20.0)
+    face_freq_scores = video_objects.process_frames(detector, cap, out)
+
+
+
+
+
+
+    detector_2 = FaceDetector(model='/home/aidankwok/Autonomous-Boat/model/public/ultra-lightweight-face-detection-rfb-320/FP16/ultra-lightweight-face-detection-rfb-320.xml',
+                        confidence_thr=0.5,
+                        overlap_thr=0.7)
+    output_dir_2 = f'/home/aidankwok/Autonomous-Boat/data/openVINO'
+    cap_2, out_2 = video_objects.create_objects('/home/aidankwok/Autonomous-Boat/data/640x480/2025-12-20 22:24:48.668686.mp4', output_dir_2, 480, 640, 20.0)
+    face_freq_scores_2 = video_objects.process_frames(detector_2, cap_2, out_2)
+
+    #Plot accuracies 
+    x = []
+    for num in range(len(face_freq_scores_2)):
+        x.append(num)
+    plt.plot(x, face_freq_scores, label='1280x960')
+    plt.plot(x, face_freq_scores_2, label='640x480')
+    plt.savefig('/home/aidankwok/Autonomous-Boat/data/plots/openVino.png')
+    plt.show()
+        
 main()
